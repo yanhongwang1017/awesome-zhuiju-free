@@ -12,11 +12,16 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Sync fork with upstream
-        uses: tgymnich/fork-sync@v2
+      - name: Checkout this repo
+        uses: actions/checkout@v4
         with:
-          owner: laoma528
-          repo: awesome-zhuiju-free
-          head: main
-          base: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0    # 拉取完整历史，merge 需要
+
+      - name: Merge upstream changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/laoma528/awesome-zhuiju-free.git
+          git fetch upstream
+          git merge upstream/main --no-edit || git merge --abort && echo "有冲突，跳过本次同步" && exit 1
+          git push origin main
