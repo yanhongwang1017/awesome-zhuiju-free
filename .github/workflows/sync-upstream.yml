@@ -1,0 +1,22 @@
+name: Sync Fork from Upstream
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 每天 UTC 0 点（北京时间早 8 点）自动同步一次
+  workflow_dispatch:       # 允许在 Actions 页面手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork with upstream
+        uses: tgymnich/fork-sync@v2
+        with:
+          owner: laoma528
+          repo: awesome-zhuiju-free
+          head: main
+          base: main
+          token: ${{ secrets.GITHUB_TOKEN }}
