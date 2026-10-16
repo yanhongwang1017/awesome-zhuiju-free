@@ -19,9 +19,29 @@ jobs:
 
       - name: Merge upstream changes
         run: |
+          set -x
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/laoma528/awesome-zhuiju-free.git
           git fetch upstream
-          git merge upstream/main --no-edit || git merge --abort && echo "有冲突，跳过本次同步" && exit 1
+
+          LOCAL=$(git rev-parse HEAD)
+          REMOTE=$(git rev-parse upstream/main)
+          BASE=$(git merge-base HEAD upstream/main)
+
+          if [ "$LOCAL" = "$REMOTE" ]; then
+            echo "已经是最新的，无需同步"
+            exit 0
+          elif [ "$LOCAL" = "$BASE" ]; then
+            echo "可以直接快进合并"
+            git merge --ff-only upstream/main
+          else
+            echo "本地和上游有分歧，尝试合并"
+            if ! git merge upstream/main --no-edit; then
+              echo "合并冲突，放弃本次同步"
+              git merge --abort || true
+              exit 1
+            fi
+          fi
+
           git push origin main
